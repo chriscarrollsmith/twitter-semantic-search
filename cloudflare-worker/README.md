@@ -1,8 +1,5 @@
 # Cloudflare Worker for semantic search
 
-TODO: env variable for OpenAI key?
-https://developers.cloudflare.com/workers/configuration/environment-variables/
-
 1. Create the index
 
 ```
@@ -23,7 +20,8 @@ wrangler vectorize create-metadata-index semantic-search-visakanv --property-nam
 wrangler deploy
 ```
 
-Also add the OPENAI_API_KEY environment variable to your worker in the CloudFlare dashboard.
+Also add the OPENAI_API_KEY environment variable to your worker in the [CloudFlare dashboard](https://developers.cloudflare.com/workers/configuration/environment-variables/
+).
 
 Now take the deployed URL and put it in the `generate-embeddings` script to populate it.
 
