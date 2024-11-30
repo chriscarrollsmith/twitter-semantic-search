@@ -6,8 +6,8 @@ import { Util } from '../frontend/src/util.js'
 import OpenAI from 'openai'
 const api = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const ARCHIVE_FILEPATH = '../archives/nosilverv.json.gz'
-const CLOUDFLARE_WORKER_URL = 'https://nosilverv-semantic-search.defenderofbasic.workers.dev'
+const ARCHIVE_FILEPATH = '../archives/visakanv.json.gz'
+const CLOUDFLARE_WORKER_URL = 'https://visakanv-semantic-search.defenderofbasic.workers.dev'
 const archive_basename = path.basename(ARCHIVE_FILEPATH, '.json.gz')
 
 const util = new Util()
@@ -51,7 +51,7 @@ const itemsToEmbed = threads.map(thread => {
 
 
 // Insert them into CloudFlare vector DB
-for (let i = 13640; i < itemsToEmbed.length; i+= 20) {
+for (let i = 13800; i < itemsToEmbed.length; i+= 20) {
     console.log(i)
 
     // Get embedding from OpenAI
@@ -74,6 +74,7 @@ for (let i = 13640; i < itemsToEmbed.length; i+= 20) {
         method: 'POST',
         body: JSON.stringify(items)
     })
+    console.log(response)
     const result = await response.json()
     console.log(result)
 }

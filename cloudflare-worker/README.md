@@ -6,7 +6,7 @@ https://developers.cloudflare.com/workers/configuration/environment-variables/
 1. Create the index
 
 ```
-wrangler vectorize create [INDEX_NAME] --dimensions=1536 --metric=cosine
+wrangler vectorize create semantic-search-visakanv --dimensions=1536 --metric=cosine
 ```
 
 Put this name in wrangler.toml, in the binding.
@@ -14,7 +14,7 @@ Put this name in wrangler.toml, in the binding.
 2. Create metadata
 
 ```
-wrangler vectorize create-metadata-index [INDEX_NAME] --property-name=text --type=string
+wrangler vectorize create-metadata-index semantic-search-visakanv --property-name=text --type=string
 ```
 
 3. Deploy it

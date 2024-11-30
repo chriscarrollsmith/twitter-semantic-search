@@ -1,11 +1,11 @@
 #:schema node_modules/wrangler/config-schema.json
-name = "nosilverv-semantic-search"
+name = "visakanv-semantic-search"
 main = "src/index.ts"
 compatibility_date = "2024-11-12"
 compatibility_flags = ["nodejs_compat"]
 
 vectorize  = [
-  { binding = "VECTORIZE", index_name = "semantic-search-nosilverv"}
+  { binding = "VECTORIZE", index_name = "semantic-search-visakanv"}
 ]
 
 [vars]

@@ -51,6 +51,11 @@ async function insert(request:any, env:any, ctx:any) {
 
 	let { mutationId } = await env.VECTORIZE.insert(
 		toInsert.map((item: any) => {
+			const maxApproxLength = 8000; // Approximate safe limit for 10,240 bytes
+			if (item.metadata.text.length > maxApproxLength) {
+				item.metadata.text = item.metadata.text.slice(0, maxApproxLength)
+			}
+
 		return { id: item.id, metadata: item.metadata, values: item.vector };
 	  })
 	);
