@@ -4,6 +4,9 @@ Basic semantic search for a tweet archive. Part of the [Community Archive](https
 
 Live demo: (https://defenderofbasic.github.io/twitter-semantic-search/)
 
+## Self host this for your own tweet archive
+
+The general steps are, create & deploy the CloudFlare worker + vector DB (see instructions in `cloudflare-worker/` directory). Then generate embeddings (run the script in `generate-embeddings/` with your archive JSON in `archives/`). Finally run the `frontend/` and replace the [cloudflare URL](https://github.com/DefenderOfBasic/twitter-semantic-search/blob/main/frontend/index.html#L71-L73) with your own, and a URL where the archive JSON is hosted. 
 
 #### TODO later:
 
