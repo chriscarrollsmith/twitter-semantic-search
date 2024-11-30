@@ -2,9 +2,8 @@
 
 Basic semantic search for a tweet archive. Part of the [Community Archive](https://www.community-archive.org/) ecosystem. Generates semantic embeddings with OpenAI for each tweet thread (replies & retweets are ignored). Embeddings are inserted into CloudFlare's Vectorize DB. The frontend embeds the query with OpenAI and searches the vector DB.
 
-Live demo: TODO
+Live demo: (https://defenderofbasic.github.io/twitter-semantic-search/)
 
-- Deploy the
 
 #### TODO later:
 
