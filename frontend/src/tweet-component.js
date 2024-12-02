@@ -71,7 +71,7 @@ class TweetComponent extends HTMLElement {
             </style>
             
                 <div class="tweet">
-                    <a href="${url}">
+                    <a href="${url}" target="_blank">
                     <div class="tweet-header">
                         <img class="avatar" src="${avatar}" alt="${name}'s avatar">
                         <div class="user-info">
