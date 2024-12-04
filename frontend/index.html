@@ -67,13 +67,18 @@
     </p>
 
     <script type="module">
-        const userDataJson = await (await fetch ('./users.json')).json()
-        const keys = Object.keys(userDataJson)
-        let output = ''
-        for (let key of keys) {
-            output += `<li><a href="./search.html?username=${key}">${key}</a></li>`
+        async function init() {
+            const userDataJson = await (await fetch ('./users.json')).json()
+            const keys = Object.keys(userDataJson)
+            let output = ''
+            for (let key of keys) {
+                output += `<li><a href="./search.html?username=${key}">${key}</a></li>`
+            }
+            document.querySelector("#user-list").innerHTML = output
         }
-        document.querySelector("#user-list").innerHTML = output
+
+        init()
+        
     </script>
 
 </body>

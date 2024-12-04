@@ -7,7 +7,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        visakanv: resolve(__dirname, 'visakanv.html')
+        search: resolve(__dirname, 'search.html')
       },
     },
   },
