@@ -179,7 +179,7 @@
                 let str = ""
                 str +=  `<p>similarity score: ${score}</p>`
                 const date = new Date(tweet.created_at)
-                    const url = `https://x.com/${util.username}/status/${util.tweet_id}`
+                    const url = `https://x.com/${util.username}/status/${tweet.tweet_id}`
                     str += `<tweet-component
                             avatar="${util.avatar}"
                             name="${util.name}"
