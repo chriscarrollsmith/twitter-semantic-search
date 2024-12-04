@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semantic Search</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 2rem;
+        }
+        .search-box {
+            padding: 0.75rem 1rem;
+            font-size: 1.1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            width: 300px;
+            max-width: 90%;
+            transition: border-color 0.2s ease;
+        }
+        .search-box:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .thread-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 5px;
+            padding: 20px;
+        }
+        #title {
+            margin-bottom:0px;
+        }
+        .subtitle {
+            margin-top:0px;
+            color:gray;
+        }
+    </style>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./src/tweet-component.js" type="module"></script>
+
+    <div class="container">
+        <h1 id="title">(loading...)</h1>
+        <p class="subtitle"></p>
+        <textarea id="search" type="text" class="search-box" placeholder="Type a query & hit enter" autofocus></textarea>
+        <div id="instructions" style="color:Gray; max-width: 400px; text-align: left;">
+            <p>
+                This will search for text similarity between what you type and all of this user's tweet threads.
+            </p>
+            <p>
+                Whatever you type, the system will find threads that are similar in meaning, tone, emotional sentiment, etc. 
+            </p>
+            <p>
+                For example, if you're looking for tweets about gender discourse:
+                <ul>
+                    <li>❌ "show me tweets about gender discourse"</li>
+                    <li>✅ "our culture has lots of problems in the relationship between men & woman, something that people often miss is..."</li>
+                </ul>
+            </p>
+            <p>
+                The best use case is when you're searching for a tweet you know exists, but you can't remember the exact wording, you can just paraphrase it and it will find it. The more detail the better.
+            </p>
+            <p>
+                You can also paste in a short essay to find tweet threads similar to it.
+            </p>
+            <p style="font-style: italic;">
+                Note: you can add <code>sortByDate</code> query param to sort results. They are sorted by similarity by default.
+            </p>
+        </div>
+
+    </div>
+    <div id="clusterThreads">
+
+    </div>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
+    <script type="module">
+        import { Util } from './src/util.js';
+        init()
+        async function init() {
+            const supabaseUrl = 'https://fabxmporizzqflnftavs.supabase.co'
+            const supabaseKey = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYnhtcG9yaXp6cWZsbmZ0YXZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjIyNDQ5MTIsImV4cCI6MjAzNzgyMDkxMn0.UIEJiUNkLsW28tBHmG-RQDW-I5JNlJLt62CSk9D_qG8`
+            const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey)
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const username = urlParams.get('username');
+            const sortByDate = urlParams.get('sortByDate');
+            
+            if (username == null) {
+                document.querySelector("#title").innerHTML = 'Error: missing username query param'
+                return
+            }
+            const userDataJson = await (await fetch ('./users.json')).json()
+            const { query_url, name, subtitle, avatar } = userDataJson[username]
+            
+          const CloudFlareQueryURL = query_url
+            const util = new Util()
+            util.username = username
+            util.name = name
+            util.avatar = avatar
+            document.querySelector("#title").innerHTML = util.username
+            document.querySelector(".subtitle").innerHTML = subtitle
+
+            const clusterThreads = document.querySelector("#clusterThreads")
+
+            document.querySelector('.search-box').addEventListener('keydown', async function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    document.querySelector("#instructions").style.display = 'none'
+
+                    clusterThreads.innerHTML = '<h3>Searching embedding space...</h3>'
+                    e.preventDefault(); // Prevents new line from being added
+                    const searchTerm = this.value
+
+                    const response = await fetch(CloudFlareQueryURL, {
+                        method: 'POST',
+                        body: JSON.stringify({ searchTerm })
+                    })
+                    let result = await response.json()
+                    console.log(result)
+                    // defender is OG, needs a different schema
+                    if (username == 'defenderofbasic') {
+                        console.log(result.matches)
+                        result.matches = result.matches.map(item => {
+                            return { id: item.metadata.id, score: item.score }
+                        })
+                    }
+
+                    clusterThreads.innerHTML = `<h3>Fetching ${result.matches.length} tweets...</h3>`
+                    const supabaseResult = await supabaseClient
+                            .schema('public')
+                            .from('tweets')
+                            .select('*')
+                            .in('tweet_id', result.matches.map(item => item.id))
+                    const tweets = supabaseResult.data 
+                    const tweetIdMap = {}
+                    tweets.forEach(item => {
+                        tweetIdMap[item.tweet_id] = item
+                    })
+
+                    let output = ""
+                    let finalTweets = []
+
+                    for (let i = 0; i < result.matches.length; i++) {
+                        const match = result.matches[i]
+                        const tweet = tweetIdMap[match.id]
+                        finalTweets.push({ tweet, score: match.score })
+                    }
+
+                    if (sortByDate) {
+                        console.log("sorting by date")
+                        finalTweets = finalTweets.sort((a, b) => new Date(a.tweet.created_at) - new Date(b.tweet.created_at))
+                    }
+                    console.log(finalTweets)
+                    finalTweets.forEach(item => {
+                        output += displayTweet(item.tweet, item.score)
+                    })
+                    
+
+                    clusterThreads.innerHTML = output
+                }
+            });
+
+            function displayTweet(tweet, score) {
+                let str = ""
+                str +=  `<p>similarity score: ${score}</p>`
+                const date = new Date(tweet.created_at)
+                    const url = `https://x.com/${util.username}/status/${util.tweet_id}`
+                    str += `<tweet-component
+                            avatar="${util.avatar}"
+                            name="${util.name}"
+                            username="${util.username}"
+                            timestamp="${date}"
+                            likes="${tweet.favorite_count}"
+                            retweets="${tweet.retweet_count}"
+                            url="${url}"
+                        >
+                        ${formatContent(tweet.full_text)}
+                        </tweet-component>
+                    `
+
+                return str
+            }
+        }
+
+        function formatContent(content) {
+                let formattedContent = content.replace(/"/g, '&quot;');
+
+                // Replace single quotes with &#39;
+                formattedContent = formattedContent.replace(/'/g, '&#39;');
+
+                // Convert newlines to <br>
+                formattedContent = formattedContent.replace(/\n/g, '<br>');
+
+                // Make URLs clickable by converting them to <a> tags
+                formattedContent = formattedContent.replace(
+                    /(https?:\/\/[^\s]+)/g,
+                    '<a href="$1" target="_blank">$1</a>'
+                );
+
+        return formattedContent;
+    }
+    </script>
+</body>
+</html>
